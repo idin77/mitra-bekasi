@@ -79,15 +79,106 @@ export default function App() {
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  // Booking Form State
+  const [bookingForm, setBookingForm] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    serviceType: 'Sedot WC / Septic Tank Penuh',
+    scheduleTime: 'Sekarang (Darurat 24 Jam)',
+    notes: '',
+  });
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    setBookingForm({
+      ...bookingForm,
+      [e.target.name]: e.target.value,
+    });
+    if (formError) setFormError('');
+  };
+
+  const handleBookingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bookingForm.name.trim()) {
+      setFormError('Silakan masukkan nama lengkap Anda.');
+      return;
+    }
+    if (!bookingForm.phone.trim()) {
+      setFormError('Silakan masukkan nomor telepon / WhatsApp Anda.');
+      return;
+    }
+    if (!bookingForm.address.trim()) {
+      setFormError('Silakan masukkan alamat lengkap atau patokan lokasi Anda.');
+      return;
+    }
+
+    const message = `Halo Sedot WC Mitra Bersih 24 Jam, saya ingin memesan layanan dengan rincian berikut:
+
+👤 *Nama Pelanggan:* ${bookingForm.name.trim()}
+📱 *No. Telepon / WA:* ${bookingForm.phone.trim()}
+📍 *Alamat Lengkap:* ${bookingForm.address.trim()}
+🛠️ *Jenis Layanan:* ${bookingForm.serviceType}
+⏰ *Waktu Layanan:* ${bookingForm.scheduleTime}
+${bookingForm.notes.trim() ? `📝 *Catatan / Kendala:* ${bookingForm.notes.trim()}\n` : ''}
+Mohon konfirmasi ketersediaan armada terdekat dan estimasi tarifnya. Terima kasih!`;
+
+    const waUrl = `https://wa.me/6285715654183?text=${encodeURIComponent(message)}`;
+    setFormSubmitted(true);
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
+  };
+
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
+
+  // SEO & Social Media Meta Tags reinforcement
+  useEffect(() => {
+    document.title = 'Sedot WC Bekasi 24 Jam – Mitra Bersih | Layanan Cepat & Bergaransi';
+
+    const setMeta = (key: string, value: string, isName = false) => {
+      let el = document.querySelector(isName ? `meta[name="${key}"]` : `meta[property="${key}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        if (isName) el.setAttribute('name', key);
+        else el.setAttribute('property', key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', value);
+    };
+
+    setMeta('og:title', 'Sedot WC Bekasi 24 Jam – Mitra Bersih | Solusi Cepat & Tuntas');
+    setMeta(
+      'og:description',
+      'Layanan sedot WC, septic tank penuh, pelancaran pipa mampet tanpa bongkar & sedot limbah STP di Bekasi. Respon 15 menit, 24 jam nonstop, harga transparan!'
+    );
+    setMeta(
+      'og:image',
+      'https://z-cdn-media.chatglm.cn/files/93764afb-0b78-41ec-9859-1723b7981014.jpg?auth_key=1891145358-e3036d2346f44ddab499d0ee91780c1a-0-4b5f27c73cf2fce784eeb806d23ef6e8'
+    );
+    setMeta('og:type', 'business.business');
+    setMeta('twitter:card', 'summary_large_image', true);
+    setMeta('twitter:title', 'Sedot WC Bekasi 24 Jam – Mitra Bersih | Respon Cepat 15 Menit', true);
+    setMeta(
+      'twitter:description',
+      'Layanan sedot WC, septic tank & pelancaran saluran mampet 24 jam di Bekasi. Hubungi: +62 857-1565-4183',
+      true
+    );
+    setMeta(
+      'twitter:image',
+      'https://z-cdn-media.chatglm.cn/files/93764afb-0b78-41ec-9859-1723b7981014.jpg?auth_key=1891145358-e3036d2346f44ddab499d0ee91780c1a-0-4b5f27c73cf2fce784eeb806d23ef6e8',
+      true
+    );
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
 
-      const sections = ['home', 'layanan', 'tentang', 'faq', 'galeri', 'kontak'];
+      const sections = ['home', 'layanan', 'pesan', 'tentang', 'faq', 'galeri', 'kontak'];
       const scrollPos = window.scrollY + 120;
 
       for (const sectionId of sections) {
@@ -198,6 +289,15 @@ export default function App() {
             </li>
             <li>
               <a
+                href="#pesan"
+                onClick={(e) => scrollTo(e, '#pesan')}
+                className={activeSection === 'pesan' ? 'active' : ''}
+              >
+                Pesan Online
+              </a>
+            </li>
+            <li>
+              <a
                 href="#tentang"
                 onClick={(e) => scrollTo(e, '#tentang')}
                 className={activeSection === 'tentang' ? 'active' : ''}
@@ -280,15 +380,31 @@ export default function App() {
                 Layanan Cepat & Profesional 24 Jam – Solusi Tuntas Septic Tank & WC Mampet Anda!
               </span>
             </h1>
-            <a
-              href="https://wa.me/6285715654183"
-              className="hero-cta"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <i className="fas fa-phone-alt"></i>
-              HUBUNGI KAMI SEKARANG · +62 857-1565-4183
-            </a>
+            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <a
+                href="https://wa.me/6285715654183"
+                className="hero-cta"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i className="fas fa-phone-alt"></i>
+                HUBUNGI KAMI SEKARANG · +62 857-1565-4183
+              </a>
+              <a
+                href="#pesan"
+                onClick={(e) => scrollTo(e, '#pesan')}
+                className="hero-cta"
+                style={{
+                  background: '#FFFFFF',
+                  color: '#111111',
+                  borderColor: 'rgba(255, 255, 255, 0.8)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                }}
+              >
+                <i className="fas fa-calendar-check" style={{ color: '#16a34a' }}></i>
+                FORMULIR PEMESANAN
+              </a>
+            </div>
             <div className="hero-stats">
               <div className="stat">
                 <strong>24/7</strong>
@@ -502,6 +618,251 @@ export default function App() {
               >
                 Pelajari <i className="fas fa-arrow-right"></i>
               </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SERVICE BOOKING FORM */}
+      <section className="booking-section" id="pesan">
+        <div className="container">
+          <div className="section-header fade-in visible">
+            <span className="section-badge">FORMULIR PEMESANAN</span>
+            <h2 className="section-title">Pesan Layanan Cepat 24 Jam</h2>
+            <p className="section-subtitle">
+              Isi data di bawah ini untuk pemesanan instan. Rincian pesanan akan langsung terformat dan terhubung ke WhatsApp resmi kami.
+            </p>
+          </div>
+
+          <div className="booking-grid">
+            {/* Left Column: Info & Perks */}
+            <div className="booking-info-card fade-in visible">
+              <div>
+                <span className="hero-badge" style={{ marginBottom: '16px', background: 'rgba(255,214,10,0.15)', borderColor: 'rgba(255,214,10,0.4)' }}>
+                  <span className="dot"></span>
+                  Armada Standby Di Seluruh Bekasi
+                </span>
+                <h3>Penyelesaian Tuntas Tanpa Ribet</h3>
+                <p>
+                  Cukup kirimkan informasi alamat dan kendala Anda. Petugas kami akan segera mengonfirmasi estimasi tarif terjangkau serta waktu tiba armada ke lokasi.
+                </p>
+
+                <ul className="booking-perks">
+                  <li className="booking-perk-item">
+                    <div className="booking-perk-icon">
+                      <i className="fas fa-bolt"></i>
+                    </div>
+                    <span>Respon Kilat 15–45 Menit ke Lokasi</span>
+                  </li>
+                  <li className="booking-perk-item">
+                    <div className="booking-perk-icon">
+                      <i className="fas fa-tools"></i>
+                    </div>
+                    <span>Peralatan Modern & Tanpa Perlu Bongkar</span>
+                  </li>
+                  <li className="booking-perk-item">
+                    <div className="booking-perk-icon">
+                      <i className="fas fa-shield-alt"></i>
+                    </div>
+                    <span>Garansi Tuntas & Uji Aliran Air Bersama</span>
+                  </li>
+                  <li className="booking-perk-item">
+                    <div className="booking-perk-icon">
+                      <i className="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <span>Harga Transparan Tanpa Biaya Tersembunyi</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="booking-direct-contact">
+                <div className="icon">
+                  <i className="fas fa-headset"></i>
+                </div>
+                <div className="text">
+                  <span>Hotline Siaga 24 Jam</span>
+                  <strong>+62 857-1565-4183</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Interactive Form */}
+            <div className="booking-form-card fade-in fade-in-delay-1 visible">
+              <div className="booking-form-header">
+                <h4>Formulir Order Sedot WC & Saluran</h4>
+                <p>Silakan lengkapi formulir singkat di bawah ini:</p>
+              </div>
+
+              {formSubmitted && (
+                <div className="booking-success-alert">
+                  <i className="fas fa-check-circle" style={{ fontSize: '20px' }}></i>
+                  <div>
+                    <strong>Pemesanan Terkirim!</strong> Detail pesanan Anda telah dibuka di WhatsApp. Jika aplikasi tidak terbuka otomatis,{' '}
+                    <a
+                      href={`https://wa.me/6285715654183?text=${encodeURIComponent(
+                        `Halo Sedot WC Mitra Bersih 24 Jam, saya ingin memesan layanan:\n\n👤 *Nama:* ${bookingForm.name}\n📱 *No. HP:* ${bookingForm.phone}\n📍 *Alamat:* ${bookingForm.address}\n🛠️ *Layanan:* ${bookingForm.serviceType}\n⏰ *Waktu:* ${bookingForm.scheduleTime}\n${bookingForm.notes ? `📝 *Catatan:* ${bookingForm.notes}\n` : ''}Mohon konfirmasi kedatangan armada. Terima kasih!`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: 'underline', color: '#047857', fontWeight: 700 }}
+                    >
+                      klik di sini untuk membuka WhatsApp
+                    </a>.
+                  </div>
+                </div>
+              )}
+
+              {formError && (
+                <div
+                  style={{
+                    background: '#fef2f2',
+                    border: '1px solid #ef4444',
+                    color: '#991b1b',
+                    borderRadius: '12px',
+                    padding: '12px 16px',
+                    marginBottom: '16px',
+                    fontSize: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <i className="fas fa-exclamation-triangle"></i>
+                  <span>{formError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleBookingSubmit}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="name">
+                      Nama Lengkap <span className="req">*</span>
+                    </label>
+                    <div className="input-with-icon">
+                      <i className="fas fa-user"></i>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        className="form-input"
+                        placeholder="Contoh: Budi Santoso"
+                        value={bookingForm.name}
+                        onChange={handleFormChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="phone">
+                      Nomor Telepon / WhatsApp <span className="req">*</span>
+                    </label>
+                    <div className="input-with-icon">
+                      <i className="fas fa-phone"></i>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        className="form-input"
+                        placeholder="Contoh: 0857-1234-5678"
+                        value={bookingForm.phone}
+                        onChange={handleFormChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="address">
+                    Alamat Lengkap & Patokan Lokasi <span className="req">*</span>
+                  </label>
+                  <div className="input-with-icon">
+                    <i className="fas fa-map-marker-alt"></i>
+                    <input
+                      type="text"
+                      id="address"
+                      name="address"
+                      className="form-input"
+                      placeholder="Jalan, No. Rumah, RT/RW, Kecamatan di Bekasi / Patokan Gang"
+                      value={bookingForm.address}
+                      onChange={handleFormChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="serviceType">
+                      Pilihan Layanan <span className="req">*</span>
+                    </label>
+                    <div className="input-with-icon">
+                      <i className="fas fa-tools"></i>
+                      <select
+                        id="serviceType"
+                        name="serviceType"
+                        className="form-select"
+                        value={bookingForm.serviceType}
+                        onChange={handleFormChange}
+                      >
+                        <option value="Sedot WC / Septic Tank Penuh">Sedot WC / Septic Tank Penuh</option>
+                        <option value="Pelancaran Saluran / Kloset Mampet">Pelancaran Saluran / Kloset Mampet</option>
+                        <option value="Sedot Limbah STP / Pabrik / Industri">Sedot Limbah STP / Industri / Ruko</option>
+                        <option value="Kuras Septic Tank & Lumpur Tebal">Kuras Septic Tank & Lumpur</option>
+                        <option value="Perawatan & Deteksi Saluran Pipa">Perawatan Saluran Pipa</option>
+                        <option value="Lainnya / Konsultasi Saluran">Lainnya / Konsultasi Masalah Saluran</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="scheduleTime">
+                      Waktu Kedatangan <span className="req">*</span>
+                    </label>
+                    <div className="input-with-icon">
+                      <i className="fas fa-clock"></i>
+                      <select
+                        id="scheduleTime"
+                        name="scheduleTime"
+                        className="form-select"
+                        value={bookingForm.scheduleTime}
+                        onChange={handleFormChange}
+                      >
+                        <option value="Sekarang (Darurat 24 Jam)">Sekarang (Darurat Siaga 24 Jam)</option>
+                        <option value="Hari Ini (Pagi / Siang)">Hari Ini (Pagi / Siang)</option>
+                        <option value="Hari Ini (Sore / Malam)">Hari Ini (Sore / Malam)</option>
+                        <option value="Jadwalkan Besok">Jadwalkan Besok</option>
+                        <option value="Jadwalkan Akhir Pekan">Jadwalkan Akhir Pekan</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="notes">
+                    Catatan Tambahan / Detail Kendala <span style={{ color: '#9ca3af', fontWeight: 500 }}>(Opsional)</span>
+                  </label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    className="form-textarea"
+                    placeholder="Contoh: Air kloset meluap ke lantai, saluran wastafel mampet, lokasi masuk gang sekitar 30 meter."
+                    value={bookingForm.notes}
+                    onChange={handleFormChange}
+                  ></textarea>
+                </div>
+
+                <button type="submit" className="btn-submit-booking">
+                  <i className="fab fa-whatsapp"></i>
+                  KIRIM PESANAN VIA WHATSAPP
+                </button>
+
+                <div className="form-footer-note">
+                  <i className="fas fa-shield-alt"></i>
+                  <span>Data Anda aman & langsung terhubung ke WhatsApp resmi Mitra Bersih (+62 857-1565-4183)</span>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -1036,6 +1397,11 @@ export default function App() {
             <div className="footer-col">
               <h4>Lainnya</h4>
               <ul className="footer-links">
+                <li>
+                  <a href="#pesan" onClick={(e) => scrollTo(e, '#pesan')}>
+                    <i className="fas fa-chevron-right"></i> Formulir Pemesanan
+                  </a>
+                </li>
                 <li>
                   <a href="#tentang" onClick={(e) => scrollTo(e, '#tentang')}>
                     <i className="fas fa-chevron-right"></i> Tentang Kami
